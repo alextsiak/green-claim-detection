@@ -1,0 +1,195 @@
+"""
+Usage:
+    python finetune_qwen3_green_claims.py \
+        --dataset_name hf-username/green-claims \
+        --label_mode binary \
+        --output_dir ./outputs/qwen3-4b-green-binary
+"""
+
+from unsloth import FastModel
+import argparse
+import os
+import random
+
+import numpy as np
+import torch
+from datasets import load_dataset, DatasetDict
+from transformers import EarlyStoppingCallback
+from trl import SFTTrainer, SFTConfig
+
+
+MODEL_NAME = "unsloth/Qwen3.5-4B"
+MAX_SEQ_LENGTH = 512
+
+LORA_R = 16
+LORA_ALPHA = 16
+LORA_DROPOUT = 0.0
+
+PER_DEVICE_BATCH_SIZE = 8
+GRAD_ACCUM_STEPS = 2
+NUM_EPOCHS = 5
+LEARNING_RATE = 2e-4
+WARMUP_RATIO = 0.03
+EVAL_STEPS = 15
+SAVE_STEPS = 15
+EARLY_STOPPING_PATIENCE = 3
+LOGGING_STEPS = 10
+
+TRAIN_FRAC = 0.70
+DEV_FRAC = 0.15
+
+SEED = 42
+
+LABELS = {
+    "binary": {
+        0: "not_green",
+        1: "green",
+        1: "green",
+    },
+    "multi": {
+        0: "not_green",
+        1: "implicit_green",
+        2: "explicit_green",
+    },
+}
+
+MULTI_PROMPT_TEMPLATE = """Classify the following social media post into exactly one of three categories: Explicit_Green, Implicit_Green, or Not_Green. Respond with only the label, nothing else.
+
+Explicit_Green: Associates ecological, environmental, or nature-friendly benefits/features to a specific product or company. This can appear anywhere in the post including whole sentences, subclauses, or hashtags.
+
+Implicit_Green: The post uses nature-evoking language or references a general environmental issue or green lifestyle, but does NOT directly associate environmental benefits to a specific product or company.
+
+Not_Green: The post contains no explicit or implicit green claims.
+
+Important: If the post contains BOTH implicit and explicit green claims, label it EXPLICIT.
+
+Post: "{text}"
+Label: """
+
+BINARY_PROMPT_TEMPLATE = """Classify the following social media post into exactly one of two categories: Green or Not_Green. Respond with only the label, nothing else.
+
+Green: The post associates ecological, environmental, or nature-friendly  benefits, features, or values with a product or company. This association may be explicit (a specific benefit/feature is directly tied to the product or company) or implicit (the post uses nature-evoking language or references a general environmental issue or green lifestyle without directly tying it to the product or company). This can appear anywhere in the post, including whole sentences, subclauses, or hashtags.
+
+Not_Green: The post contains no green claims.
+
+Post: "{text}"
+Label: """
+
+
+def set_seed(seed: int):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+
+def build_prompt(text: str, label_mode: str):
+    template = BINARY_PROMPT_TEMPLATE if label_mode == "binary" else MULTI_PROMPT_TEMPLATE
+    text = text.strip().replace("\n", " ")
+    return template.format(text=text)
+
+
+def preprocess_labels(example, label_mode: str, raw_label_col: str, tokenizer):
+    scheme = LABELS[label_mode]
+    raw_label = example[raw_label_col]
+    mapped_label = scheme[raw_label]
+    prompt = build_prompt(example["tweet"], label_mode)
+    full_text = prompt + " " + mapped_label + tokenizer.eos_token
+    return {
+        "prompt": prompt,
+        "label": mapped_label,
+        "text_for_training": full_text,
+    }
+
+
+def main(dataset_name, label_mode, output_dir, label_col):
+    set_seed(SEED)
+    os.makedirs(output_dir, exist_ok=True)
+
+    model, tokenizer = FastModel.from_pretrained(
+        model_name=MODEL_NAME,
+        max_seq_length=MAX_SEQ_LENGTH,
+        dtype=None, 
+        load_in_4bit=False,
+        load_in_16bit=True,
+        #attn_implementation="eager"
+    )
+
+    processor = tokenizer
+    tokenizer = processor.tokenizer if hasattr(processor, "tokenizer") else processor
+
+    model = FastModel.get_peft_model(
+        model,
+        r=LORA_R,
+        target_modules=[
+            "q_proj", "k_proj", "v_proj", "o_proj",
+            "gate_proj", "up_proj", "down_proj",
+        ],
+        lora_alpha=LORA_ALPHA,
+        lora_dropout=LORA_DROPOUT,
+        bias="none",
+        use_gradient_checkpointing="unsloth",
+        random_state=SEED
+    )
+
+    dataset = load_dataset(dataset_name)
+
+    dataset = dataset.map(
+        lambda ex: preprocess_labels(ex, label_mode, label_col, tokenizer)
+    )
+
+    sft_config = SFTConfig(
+        output_dir=output_dir,
+        per_device_train_batch_size=PER_DEVICE_BATCH_SIZE,
+        per_device_eval_batch_size=PER_DEVICE_BATCH_SIZE,
+        gradient_accumulation_steps=GRAD_ACCUM_STEPS,
+        num_train_epochs=NUM_EPOCHS,
+        learning_rate=LEARNING_RATE,
+        warmup_ratio=WARMUP_RATIO,
+        logging_steps=LOGGING_STEPS,
+        eval_strategy="steps",
+        eval_steps=EVAL_STEPS,
+        save_strategy="steps",
+        save_steps=SAVE_STEPS,
+        save_total_limit=2,
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
+        fp16=not torch.cuda.is_bf16_supported(),
+        bf16=torch.cuda.is_bf16_supported(),
+        optim="adamw_8bit",
+        weight_decay=0.01,
+        lr_scheduler_type="linear",
+        seed=SEED,
+        report_to="none",
+        dataset_text_field="text_for_training",
+        max_seq_length=MAX_SEQ_LENGTH,
+        packing=False,
+    )
+
+    trainer = SFTTrainer(
+        model=model,
+        tokenizer=tokenizer,
+        train_dataset=dataset["train"],
+        eval_dataset=dataset["validation"],
+        args=sft_config,
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=EARLY_STOPPING_PATIENCE)],
+    )
+
+    trainer.train()
+
+    final_dir = os.path.join(output_dir, "final_adapter")
+    model.save_pretrained(final_dir)
+    tokenizer.save_pretrained(final_dir)
+
+    dataset["test"].to_json(os.path.join(output_dir, "test_split.jsonl"))
+    
+    model.push_to_hub("alextsiak/qwen3.5-4b-green-claims-multi")
+    tokenizer.push_to_hub("alextsiak/qwen3.5-4b-green-claims-multi")
+
+
+if __name__ == "__main__":
+    main(dataset_name="alextsiak/green-claims-twitter-balanced",
+    label_mode="multi",
+    label_col="label_multi",
+    output_dir="./outputs/qwen3.5-4b-green-multi",)

@@ -1,0 +1,12 @@
+Classify the following social media post into exactly one of three categories: Explicit_Green, Implicit_Green, or Not_Green. Respond with only the label, nothing else.
+
+Explicit_Green: Associates ecological, environmental, or nature-friendly benefits/features to a specific product or company. This can appear anywhere in the post including whole sentences, subclauses, or hashtags.
+
+Implicit_Green: The post uses nature-evoking language or references a general environmental issue or green lifestyle, but does NOT directly associate environmental benefits to a specific product or company.
+
+Not_Green: The post contains no explicit or implicit green claims.
+
+Important: If the post contains BOTH implicit and explicit green claims, label it EXPLICIT.
+
+Here are some examples:
+

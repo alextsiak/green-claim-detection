@@ -1,0 +1,18 @@
+Classify the following social media post into exactly one of two categories: Green or Not_Green. Respond with only the label, nothing else.
+
+Green: The post associates ecological, environmental, or nature-friendly  benefits, features, or values with a product or company. This association may be explicit (a specific benefit/feature is directly tied to the product or company) or implicit (the post uses nature-evoking language or references a general environmental issue or green lifestyle without directly tying it to the product or company). This can appear anywhere in the post, including whole sentences, subclauses, or hashtags.
+
+Not_Green: The post contains no green claims.
+
+Here are some examples:
+
+Post: "Can't sleep? The new Bose noise-masking sleepbuds block out noise and generate soothing, restful sound in your ears. And they're comfortable enough to wear all night long.  See them and more of the latest wellness tech here:  https://t.co/v1LIVWNLN1  https://t.co/TO2P5aqzVa"
+Label: Not_Green
+
+Post: "#Didyouknow, Green Goddess comes in an @fsc_ic certified box featuring 100% recyclable paper from a responsibly managed forest? The ultra-pure formula is also #sustainablysourced with squalene from ECOCERT approved sugarcane &amp; non-GMO CBD. #EarthDay2020  📸: @omgbart  https://t.co/02dtf61AHE"
+Label: Green
+
+Now classify this post:
+
+Post: "{tweet}"
+Label: 

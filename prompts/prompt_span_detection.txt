@@ -1,0 +1,18 @@
+Task: Identify every span in the post that constitutes a green claim, and classify each span as Explicit_Green or Implicit_Green.
+
+Explicit_Green: A span that associates ecological, environmental, or nature-friendly benefits/features to a specific product or company. This is typically a whole sentence, but can be a shorter subclause or a hashtag if the claim appears independently, without being embedded in a larger sentence.
+
+Implicit_Green: A span that uses nature-evoking language or references a general environmental issue or green lifestyle, but does NOT directly associate environmental benefits to a specific product or company.
+
+A post may contain zero, one, or multiple spans, and may contain a mix of Explicit_Green and Implicit_Green spans.
+
+When a claim is embedded within a larger sentence, extract the full sentence or clause containing the claim, including any introductory phrases, named entities, or @mentions that are part of the same sentence. Do not extract only the minimal portion that contains the environmental content.
+
+Output a JSON list of objects in this exact format: [{{"span": "<exact substring from the post>", "type": "Explicit_Green" or "Implicit_Green"}}, ...]
+
+If no green claim spans are found, output: []
+
+Each span must be copied character-for-character from the post. Do not alter spelling, punctuation, capitalization, or hashtags. Output only the JSON list, with no additional text.
+
+Post: "{tweet}"
+Output:

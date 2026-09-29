@@ -1,0 +1,36 @@
+Classify the following social media post into exactly one of three categories: Explicit_Green, Implicit_Green, or Not_Green. Respond with only the label, nothing else.
+
+Explicit_Green: Associates ecological, environmental, or nature-friendly benefits/features to a specific product or company. This can appear anywhere in the post including whole sentences, subclauses, or hashtags.
+
+Implicit_Green: The post uses nature-evoking language or references a general environmental issue or green lifestyle, but does NOT directly associate environmental benefits to a specific product or company.
+
+Not_Green: The post contains no explicit or implicit green claims.
+
+Important: If the post contains BOTH implicit and explicit green claims, label it EXPLICIT.
+
+Here are some examples:
+
+Post: "Can't sleep? The new Bose noise-masking sleepbuds block out noise and generate soothing, restful sound in your ears. And they're comfortable enough to wear all night long.  See them and more of the latest wellness tech here:  https://t.co/v1LIVWNLN1  https://t.co/TO2P5aqzVa"
+Label: Not_Green
+
+Post: "Experience 24-karat magic with #SupremeSkin ✨ Our NEW Revitalizing Supreme+ SPF15 creme features an exclusive #Moringa Extract to help skin optimize its natural renewal and cellular potential:  https://t.co/1kdsD155MF #UnlocktheBeautyofNow  https://t.co/x9jY1Bz30N"
+Label: Not_Green
+
+Post: Turning food waste into a garden treasure:  https://t.co/8qkrBIYUKz  https://t.co/pxoL26Yioh
+Label: Implicit_Green
+
+Post: "#GirlsHackTheWorld! Our NE branch is sponsoring the @SophiaAcademyRI  #EarthDay event. #KMCares  https://t.co/c1kXujRKQk"
+Label: Implicit_Green
+
+Post: "#Didyouknow, Green Goddess comes in an @fsc_ic certified box featuring 100% recyclable paper from a responsibly managed forest? The ultra-pure formula is also #sustainablysourced with squalene from ECOCERT approved sugarcane &amp; non-GMO CBD. #EarthDay2020  📸: @omgbart  https://t.co/02dtf61AHE"
+Label: Explicit_Green
+
+Post: "Bamboo-cute! New Colgate Bamboo Kids Toothbrushes feature 100% natural, #biodegradable bamboo handles and #recyclable cardboard packaging, eliminating plastic waste. Kids aged 6+ love the gentle, deep cleaning action, too. Available now in New Zealand; more markets coming soon!  https://t.co/SM19Kbmoy5"
+Label: Explicit_Green
+
+Now classify this post:
+
+Post: "{tweet}"
+Label: 
+
+

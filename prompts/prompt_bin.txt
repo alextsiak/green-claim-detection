@@ -1,0 +1,8 @@
+Classify the following social media post into exactly one of two categories: Green or Not_Green. Respond with only the label, nothing else.
+
+Green: The post associates ecological, environmental, or nature-friendly  benefits, features, or values with a product or company. This association may be explicit (a specific benefit/feature is directly tied to the product or company) or implicit (the post uses nature-evoking language or references a general environmental issue or green lifestyle without directly tying it to the product or company). This can appear anywhere in the post, including whole sentences, subclauses, or hashtags.
+
+Not_Green: The post contains no green claims.
+
+Post: "{tweet}"
+Label: 
