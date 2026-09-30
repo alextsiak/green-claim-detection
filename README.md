@@ -10,4 +10,4 @@ This repository hosts the code for running different experiments for green claim
 
 To run each script, do: `python script_name.py`
 
-The Qwen fine-tuning script takes in additional parameters: `python finetune_qwen3_green_claims.py --dataset_name hf-username/green-claims --label_mode binary --output_dir ./outputs/qwen3-4b-green-binary`
+The Qwen fine-tuning script takes in additional parameters: `python finetune_qwen3_green_claims.py --dataset_name hf-username/green-claims --label_mode binary/multi --output_dir ./outputs/qwen3-4b-green-binary`
