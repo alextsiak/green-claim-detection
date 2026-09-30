@@ -25,7 +25,7 @@ All script can be run by: `python scripts/script_name.py`
 
 To run the Qwen fine-tuning:
 ```
-python scripts/finetune_qwen3_green_claims.py \
+python scripts/lora_qwen.py \
     --dataset_name ... \
     --label_mode binary (or multi) \
     --output_dir ./outputs/qwen3-4b-green-binary
